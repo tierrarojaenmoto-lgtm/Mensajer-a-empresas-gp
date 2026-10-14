@@ -278,6 +278,16 @@ footer b{color:var(--ink)}
    <input id="empDropoff" maxlength="180" placeholder="Se completa al marcar el destino">
    <div id="empDropoffMap" class="map" role="application" aria-label="Mapa para marcar la entrega"></div>
    <button type="button" class="btn ghost sm" onclick="empresaUseMap('dropoff')">🏁 Marcar la entrega en el mapa</button>
+   <div class="locpaste" style="margin:14px 0;padding:14px;border:2px dashed var(--ink);border-radius:var(--r);background:var(--lilac)">
+    <label for="empLocPaste" style="margin-top:0">📍 ¿Te mandaron la ubicación? Pegala acá</label>
+    <p class="hint" style="margin:2px 0 8px">Pegá el link de Google Maps o WhatsApp, o las coordenadas (ej.: -25.9712, -54.5731).</p>
+    <input id="empLocPaste" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Link o coordenadas de la ubicación" onpaste="setTimeout(empresaApplyLoc,60)">
+    <div style="display:flex;gap:8px;margin-top:8px">
+     <button type="button" class="btn ghost sm" style="flex:1" onclick="empresaPasteClip()">📋 Pegar</button>
+     <button type="button" class="btn violet sm" style="flex:1" onclick="empresaApplyLoc()">✅ Usar esta ubicación</button>
+    </div>
+    <p class="hint" id="empLocStatus" style="margin:8px 0 0"></p>
+   </div>
    <div class="favs">
     <h3>⭐ Destinos guardados</h3>
     <p class="hint">Reutilizá una entrega frecuente sin buscarla de nuevo.</p>
@@ -449,6 +459,35 @@ function empresaGPS(){
   st.className="hint";st.textContent="No se pudo obtener el GPS. Permití la ubicación del navegador o marcá el retiro en el mapa.";
   btn.disabled=false;btn.textContent="📍 Intentar GPS de nuevo";
  },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+}
+/* ---------- Ubicación pegada (link de Maps/WhatsApp o coordenadas) ---------- */
+function parseLoc(txt){
+ let t=String(txt||"").trim();if(!t)return null;
+ if(/(maps\.app\.goo\.gl|goo\.gl\/maps|g\.co\/kgs|share\.google)/i.test(t))return{short:true};
+ try{t=decodeURIComponent(t)}catch(e){}
+ const num="(-?\\d{1,3}(?:\\.\\d+)?)",sep="\\s*(?:,|;|\\s)\\s*";
+ const pats=[new RegExp("!3d"+num+"!4d"+num),new RegExp("@"+num+","+num),new RegExp("[?&](?:q|ll|query|destination|daddr|sll|center|cbll)="+num+sep+num,"i"),new RegExp("(?:^|[^\\d.])"+num.replace("(?:\\.\\d+)?","\\.\\d+")+sep+num.replace("(?:\\.\\d+)?","\\.\\d+"))];
+ for(const re of pats){const m=t.match(re);if(m){const lat=parseFloat(m[1]),lng=parseFloat(m[2]);if(Math.abs(lat)<=90&&Math.abs(lng)<=180&&!(lat===0&&lng===0))return{lat,lng}}}
+ return null}
+function kmFromCenter(ll){const R=6371,r=x=>x*Math.PI/180,dLa=r(ll.lat-CENTER[0]),dLo=r(ll.lng-CENTER[1]),a=Math.sin(dLa/2)**2+Math.cos(r(CENTER[0]))*Math.cos(r(ll.lat))*Math.sin(dLo/2)**2;return 2*R*Math.asin(Math.sqrt(a))}
+async function empresaApplyLoc(){
+ const inp=$("empLocPaste"),st=$("empLocStatus"),res=parseLoc(inp.value);
+ if(!inp.value.trim()){st.className="hint";st.textContent="Pegá primero el link o las coordenadas.";return}
+ if(!res){st.className="hint";st.style.color="var(--err)";st.textContent="No pude leer esa ubicación. Pegá el link completo o las coordenadas (latitud, longitud).";return}
+ st.style.color="";
+ if(res.short){st.className="hint";st.style.color="var(--err)";st.textContent="Ese link corto no se puede leer. Pedile que te la mande por WhatsApp con 📎 → Ubicación → “Enviar ubicación actual”, o que te pase las coordenadas.";return}
+ if(kmFromCenter(res)>80&&!confirm("Esa ubicación queda a más de 80 km de la zona de servicio. ¿Querés usarla igual?"))return;
+ st.className="hint";st.textContent="Marcando el destino…";
+ empresaInitMaps();
+ setTimeout(()=>empresaDropoffMap.setView([res.lat,res.lng],17),150);
+ await empresaSetPoint("dropoff",{lat:res.lat,lng:res.lng});
+ st.className="hint ok";st.textContent="✅ Destino marcado en el mapa con la ubicación que pegaste.";
+ toast("✅ Destino marcado");
+ try{$("empDropoffMap").scrollIntoView({behavior:"smooth",block:"center"})}catch(e){}
+}
+async function empresaPasteClip(){
+ try{const t=await navigator.clipboard.readText();if(!t){toast("El portapapeles está vacío.");return}$("empLocPaste").value=t;empresaApplyLoc()}
+ catch(e){toast("Tocá el campo y pegá manualmente (mantené apretado → Pegar).");$("empLocPaste").focus()}
 }
 function empresaSelectParcel(btn){
  empresaParcelSize=btn.dataset.size;
