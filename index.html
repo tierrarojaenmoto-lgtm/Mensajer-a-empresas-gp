@@ -187,7 +187,12 @@ input:focus{outline:3px solid var(--violet);outline-offset:2px}
 
 /* Historial y herramientas para empresas */
 .history-card{background:#fff;border:2px solid var(--ink);border-radius:var(--r);box-shadow:0 5px 0 var(--ink);padding:18px;margin:18px 0}
-.history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.history-head{display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;list-style:none}
+.history-head::-webkit-details-marker{display:none}
+.history-toggle{display:grid;place-items:center;flex:none;width:34px;height:34px;border:2px solid var(--ink);border-radius:50%;font-size:23px;font-weight:800;line-height:1;background:var(--sand)}
+.history-card[open] .history-toggle{font-size:0}
+.history-card[open] .history-toggle:before{content:"−";font-size:23px}
+.history-content{padding-top:2px}
 .history-head h2{font:700 23px/1.1 "Fredoka",sans-serif;margin:0 0 4px}
 .history-head p{font-size:14px;color:var(--mut);font-weight:700;margin:0}
 .history-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
@@ -274,8 +279,14 @@ footer b{color:var(--ink)}
    <input id="empRecipient" maxlength="100" placeholder="Nombre y apellido">
    <label for="empRecipientPhone">Teléfono del destinatario</label>
    <input id="empRecipientPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" required aria-required="true" placeholder="Teléfono de contacto">
-   <label for="empDropoff">Dirección o referencia de entrega</label>
-   <input id="empDropoff" maxlength="180" placeholder="Se completa al marcar el destino">
+   <label for="empDropoffLocality">Localidad</label>
+   <input id="empDropoffLocality" maxlength="100" autocomplete="address-level2" placeholder="Ej.: Wanda">
+   <label for="empDropoffNeighborhood">Barrio <small>(opcional)</small></label>
+   <input id="empDropoffNeighborhood" maxlength="100" placeholder="Ej.: Barrio Centro">
+   <label for="empDropoffStreet">Calle y número</label>
+   <input id="empDropoffStreet" maxlength="140" autocomplete="street-address" placeholder="Ej.: San Martín 123">
+   <p class="hint" id="empDropoffGeoStatus" aria-live="polite">Al completar la localidad y la calle, buscaremos el punto y lo marcaremos en el mapa automáticamente.</p>
+   <input id="empDropoff" maxlength="180" placeholder="Dirección completa" hidden>
    <div id="empDropoffMap" class="map" role="application" aria-label="Mapa para marcar la entrega"></div>
    <button type="button" class="btn ghost sm" onclick="empresaUseMap('dropoff')">🏁 Marcar la entrega en el mapa</button>
    <div class="locpaste" style="margin:14px 0;padding:14px;border:2px dashed var(--ink);border-radius:var(--r);background:var(--lilac)">
@@ -335,11 +346,16 @@ footer b{color:var(--ink)}
  </section>
 
 
- <section class="history-card" id="historyCard" aria-labelledby="historyTitle">
-  <div class="history-head"><div><h2 id="historyTitle">📋 Mis envíos</h2><p>Historial guardado en este dispositivo.</p></div></div>
-  <div class="history-stats" id="historyStats"></div>
-  <div class="history-list" id="historyList"></div>
- </section>
+ <details class="history-card" id="historyCard">
+  <summary class="history-head" aria-controls="historyContent">
+   <div><h2 id="historyTitle">📋 Mis envíos e historial</h2><p>Historial guardado en este dispositivo.</p></div>
+   <span class="history-toggle" aria-hidden="true">＋</span>
+  </summary>
+  <div id="historyContent" class="history-content">
+   <div class="history-stats" id="historyStats"></div>
+   <div class="history-list" id="historyList"></div>
+  </div>
+ </details>
 
  <footer>GPTAXI <b>Empresas</b> · Mensajería en moto para negocios</footer>
 </main>
@@ -439,8 +455,43 @@ async function empresaSetPoint(kind,ll){
  }
  const address=await empresaReverse(point);
  if(kind==="pickup"){$("empPickup").value=address;$("empGpsStatus").className="hint ok";$("empGpsStatus").textContent="✅ Retiro marcado: "+address}
- else $("empDropoff").value=address;
+ else {
+  const structured=[$("empDropoffStreet").value.trim(),$("empDropoffNeighborhood").value.trim(),$("empDropoffLocality").value.trim()].filter(Boolean).join(", ");
+  $("empDropoff").value=structured||address;
+  $("empDropoffGeoStatus").className="hint ok";$("empDropoffGeoStatus").textContent="✅ Punto de entrega marcado en el mapa.";
+ }
 }
+let empresaDropoffGeocodeTimer=null,empresaDropoffGeocodeSeq=0;
+function empresaDropoffAddress(){
+ const locality=$("empDropoffLocality").value.trim(),neighborhood=$("empDropoffNeighborhood").value.trim(),street=$("empDropoffStreet").value.trim();
+ return [street,neighborhood,locality,"Argentina"].filter(Boolean).join(", ");
+}
+function empresaScheduleDropoffGeocode(){
+ clearTimeout(empresaDropoffGeocodeTimer);
+ const locality=$("empDropoffLocality").value.trim(),street=$("empDropoffStreet").value.trim();
+ const address=empresaDropoffAddress();
+ $("empDropoff").value=[street,$("empDropoffNeighborhood").value.trim(),locality].filter(Boolean).join(", ");
+ empresaDropoffGeocodeSeq++;
+ if(!locality||!street){$("empDropoffGeoStatus").className="hint";$("empDropoffGeoStatus").textContent="Completá la localidad y la calle para ubicar el destino automáticamente.";return}
+ const seq=empresaDropoffGeocodeSeq;
+ $("empDropoffGeoStatus").className="hint";$("empDropoffGeoStatus").textContent="Buscando la dirección en OpenStreetMap…";
+ empresaDropoffGeocodeTimer=setTimeout(async()=>{
+  try{
+   const url="https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&countrycodes=ar&addressdetails=1&q="+encodeURIComponent(address);
+   const response=await fetch(url,{headers:{"Accept-Language":"es"}}),results=await response.json();
+   if(seq!==empresaDropoffGeocodeSeq)return;
+   if(!results.length){$("empDropoffGeoStatus").className="hint";$("empDropoffGeoStatus").textContent="No encontramos esa dirección. Revisá los datos o marcá el punto manualmente en el mapa.";return}
+   const result=results[0],ll={lat:Number(result.lat),lng:Number(result.lon)};
+   if(!Number.isFinite(ll.lat)||!Number.isFinite(ll.lng))throw new Error("Coordenadas inválidas");
+   empresaInitMaps();empresaDropoffPoint=ll;
+   if(empresaDropoffMarker)empresaDropoffMarker.setLatLng(ll);else empresaDropoffMarker=L.marker(ll,{icon:mapIcon("🏁")}).addTo(empresaDropoffMap);
+   empresaDropoffMap.setView([ll.lat,ll.lng],17);
+   $("empDropoff").value=[street,$("empDropoffNeighborhood").value.trim(),locality].filter(Boolean).join(", ");
+   $("empDropoffGeoStatus").className="hint ok";$("empDropoffGeoStatus").textContent="✅ Destino marcado automáticamente en el mapa. Si el punto no es exacto, podés ajustarlo tocando el mapa.";
+  }catch(e){if(seq===empresaDropoffGeocodeSeq){$("empDropoffGeoStatus").className="hint";$("empDropoffGeoStatus").textContent="No se pudo buscar la dirección. Revisá tu conexión o marcá el mapa manualmente."}}
+ },650);
+}
+["empDropoffLocality","empDropoffNeighborhood","empDropoffStreet"].forEach(id=>$(id).addEventListener("input",empresaScheduleDropoffGeocode));
 function empresaUseMap(kind){
  empresaInitMaps();
  const m=kind==="pickup"?empresaPickupMap:empresaDropoffMap;
@@ -634,7 +685,9 @@ async function solicitarEnvio(){
  finally{btn.disabled=false;btn.textContent="📦 Pedir envío"}
 }
 function empresaReset(){
- for(const id of["empPickup","empDropoff","empRecipient","empRecipientPhone"])$(id).value="";
+ for(const id of["empPickup","empDropoff","empRecipient","empRecipientPhone","empDropoffLocality","empDropoffNeighborhood","empDropoffStreet"])$(id).value="";
+ $("empDropoffGeoStatus").className="hint";$("empDropoffGeoStatus").textContent="Al completar la localidad y la calle, buscaremos el punto y lo marcaremos en el mapa automáticamente.";
+ empresaDropoffGeocodeSeq++;clearTimeout(empresaDropoffGeocodeTimer);
  empresaPickupPoint=null;empresaDropoffPoint=null;empresaParcelSize="";
  if(empresaPickupMarker&&empresaPickupMap){empresaPickupMap.removeLayer(empresaPickupMarker);empresaPickupMarker=null}
  if(empresaDropoffMarker&&empresaDropoffMap){empresaDropoffMap.removeLayer(empresaDropoffMarker);empresaDropoffMarker=null}
