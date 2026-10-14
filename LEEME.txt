@@ -1,0 +1,9 @@
+GPTAXI Empresas - PWA
+=====================
+1) Subí TODO el contenido de esta carpeta a la raíz de tu hosting (donde va el index.html).
+2) Tiene que abrirse por HTTPS (obligatorio para instalar y para notificaciones).
+3) Abrí la URL en Chrome (Android) -> aparece el botón "Instalar" arriba, o menú ⋮ -> "Instalar aplicación".
+   iPhone: Safari -> Compartir -> "Agregar a inicio".
+4) Si la subís a una subcarpeta (ej. midominio.com/empresas/) funciona igual: todas las rutas son relativas.
+5) Al actualizar archivos, subí también sw.js y cambiá VERSION dentro de sw.js (ej. v2) para forzar la actualización.
+Archivos: index.html, manifest.webmanifest, sw.js, offline.html, icon-192/512, icon-maskable-512, apple-touch-icon, badge-96, .htaccess

@@ -1,0 +1,744 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<title>GPTAXI Empresas · Envíos y mensajería en moto</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#FFC533">
+<meta name="description" content="Pedí mensajería en moto para tu negocio: tarifa clara, seguimiento en vivo y pago por alias.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="GPTAXI Empresas">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800&display=swap">
+<style>
+:root{--bg:#FFF7E6;--ink:#2A1B5E;--mut:#6B5F9A;--y:#FFC533;--yd:#E3A200;--coral:#FF5C7A;--mint:#12B886;--mintd:#0B8A63;--violet:#5B3FD1;--lilac:#EFE6FF;--sand:#FFF0C7;--err:#E03131;--r:22px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+html,body{margin:0;background:var(--bg)}
+body{font:600 16px/1.5 "Nunito",system-ui,sans-serif;color:var(--ink);padding-bottom:calc(40px + env(safe-area-inset-bottom,0px));overscroll-behavior-y:contain}
+h1,h2,h3,b,button,.btn,.stage,.pill{font-family:"Fredoka","Nunito",system-ui,sans-serif}
+[hidden]{display:none!important}
+.inst{display:inline-flex;align-items:center;gap:6px;background:var(--ink);color:var(--y);border:2px solid var(--ink);border-radius:999px;padding:5px 12px;font:600 13px "Fredoka",sans-serif;cursor:pointer}
+.ios-tip{background:#fff;border:2px solid var(--ink);border-radius:var(--r);box-shadow:0 4px 0 var(--ink);padding:12px 16px;margin:0 0 18px;font-size:14px}
+
+.wrap{max-width:560px;margin:0 auto;padding:0 18px}
+
+/* ── Héroe ── */
+.hero{background:var(--y);border-bottom:3px solid var(--ink);border-radius:0 0 38px 38px;padding:calc(14px + env(safe-area-inset-top,0px)) 0 74px;position:relative;overflow:hidden}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;background:#FFD863;z-index:0}
+.hero:before{width:240px;height:240px;right:-90px;top:-70px}
+.hero:after{width:140px;height:140px;left:-50px;bottom:30px;background:#FFDD70}
+.hero .wrap{position:relative;z-index:1}
+.top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.brand{display:flex;align-items:center;gap:10px;font:600 20px "Fredoka",sans-serif;letter-spacing:-.01em}
+.brand img{width:38px;height:38px;border-radius:12px;border:2px solid var(--ink);background:#fff}
+.brand b{background:var(--ink);color:var(--y);padding:2px 10px;border-radius:999px;font-size:15px;margin-left:2px}
+.net{display:inline-flex;align-items:center;gap:7px;background:#fff;border:2px solid var(--ink);border-radius:999px;padding:5px 11px;font-size:12px;font-weight:800}
+.net i{width:9px;height:9px;border-radius:50%;background:var(--mint);display:inline-block}
+.net.off i{background:var(--err)}
+h1{font-size:clamp(34px,10vw,46px);line-height:1.02;letter-spacing:-.025em;font-weight:700;margin:26px 0 12px;max-width:11em}
+h1 mark{background:var(--coral);color:#fff;padding:0 .18em;border-radius:14px;display:inline-block;transform:rotate(-2deg)}
+.lead{margin:0 0 16px;font-size:17px;font-weight:700;max-width:26em;color:#4a3a14}
+.chips{list-style:none;margin:16px 0 0;padding:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;align-items:stretch}
+.chips li{display:flex;align-items:center;justify-content:center;min-width:0;min-height:48px;text-align:center;background:#fff;border:2px solid var(--ink);border-radius:14px;padding:8px 5px;font-weight:800;font-size:clamp(11px,3.1vw,13px);line-height:1.15;box-shadow:0 3px 0 var(--ink);overflow-wrap:anywhere}
+@media(max-width:360px){.chips{gap:5px}.chips li{padding:7px 3px;font-size:10.5px;min-height:44px}}
+
+/* ── Contenido ── */
+main{margin-top:-44px;position:relative;z-index:2}
+body.live .hero{padding-bottom:28px}
+body.live .hero h1,body.live .hero .lead,body.live .hero .chips,body.live .hero .art{display:none}
+body.live main{margin-top:22px}
+.card{background:#fff;border:2px solid var(--ink);border-radius:var(--r);box-shadow:0 5px 0 var(--ink);padding:20px;margin-bottom:18px}
+.card h2{font-size:24px;line-height:1.12;margin:0 0 4px;font-weight:700;letter-spacing:-.015em}
+.card .sub{margin:0 0 6px;color:var(--mut);font-size:15px;font-weight:700}
+
+/* Pasos */
+.stepper{display:grid;grid-template-columns:auto 1fr auto 1fr auto;align-items:center;gap:8px;margin:0 0 18px;background:#fff;border:2px solid var(--ink);border-radius:999px;box-shadow:0 4px 0 var(--ink);padding:9px 14px}
+.node{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;font:600 14px "Fredoka",sans-serif;color:var(--mut);cursor:pointer;box-shadow:none;height:auto;width:auto;margin:0}
+.node span{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--lilac);border:2px solid var(--ink);font-size:16px;color:var(--ink);transition:background .2s,transform .2s}
+.node em{font-style:normal}
+.node.active{color:var(--ink)}
+.node.active span{background:var(--coral);color:#fff;transform:scale(1.1)}
+.node.done span{background:var(--mint);color:#fff}
+.bar{height:6px;border-radius:99px;background:var(--lilac);overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--mint);border-radius:99px;transition:width .35s ease}
+.stepper[data-s="2"] .bar:nth-of-type(1) i,.stepper[data-s="3"] .bar i{width:100%}
+@media(max-width:400px){.node em{display:none}}
+
+/* Campos */
+label{display:block;font:600 15px "Fredoka",sans-serif;margin:16px 0 7px}
+label small{font:700 13px "Nunito",sans-serif;color:var(--mut);margin-left:6px}
+input{width:100%;height:54px;padding:0 16px;border:2px solid var(--ink);border-radius:16px;background:#fff;color:var(--ink);font:700 16px "Nunito",sans-serif}
+input::placeholder{color:#a79bd0;font-weight:600}
+input:focus{outline:3px solid var(--violet);outline-offset:2px}
+.hint{margin:8px 0 0;font-size:14px;color:var(--mut);font-weight:700}
+.hint.ok{color:var(--mintd)}
+
+/* Botones */
+.btn,button.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;height:56px;margin-top:14px;padding:0 18px;border:2px solid var(--ink);border-radius:999px;background:var(--y);color:var(--ink);font-size:17px;font-weight:600;cursor:pointer;text-decoration:none;box-shadow:0 4px 0 var(--ink);transition:transform .12s,box-shadow .12s,filter .12s}
+.btn:hover{filter:brightness(1.04)}
+.btn:active{transform:translateY(3px);box-shadow:0 1px 0 var(--ink)}
+.btn:disabled{opacity:.55;pointer-events:none}
+.btn.coral{background:var(--coral);color:#fff}
+.btn.violet{background:var(--violet);color:#fff}
+.btn.mint{background:var(--mint);color:#fff}
+.btn.ghost{background:#fff}
+.btn.sm{height:46px;font-size:15px;margin-top:10px;white-space:nowrap}
+.row .btn{white-space:nowrap}
+.btn:focus-visible,.node:focus-visible,.opt:focus-visible,a:focus-visible{outline:3px solid var(--violet);outline-offset:3px}
+.row{display:flex;gap:10px}.row>*{flex:1}
+
+/* Mapas */
+.map{height:240px;border:2px solid var(--ink);border-radius:18px;margin-top:14px;overflow:hidden;background:#EFE9D8;position:relative;z-index:0}
+.map.tall{height:260px}
+.moto{font-size:28px;line-height:1;text-align:center;filter:drop-shadow(0 2px 0 rgba(42,27,94,.35))}
+.leaflet-container{font-family:"Nunito",sans-serif}
+
+/* Paquetes */
+.opts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.opt{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:16px 10px 14px;min-height:118px;border:2px solid var(--ink);border-radius:18px;background:#fff;color:var(--ink);cursor:pointer;box-shadow:0 3px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .15s;height:auto;font-size:15px;text-align:center}
+.opt:active{transform:translateY(2px);box-shadow:0 1px 0 var(--ink)}
+.opt .e{font-size:34px;line-height:1.1}
+.opt b{font-size:16px}
+.opt small{font:700 12.5px/1.3 "Nunito",sans-serif;color:var(--mut)}
+.opt.selected{background:var(--y)}
+.opt.selected small{color:#5a4300}
+.opt.selected:after{content:"✓";position:absolute;top:8px;right:8px;width:24px;height:24px;border-radius:50%;background:var(--ink);color:#fff;display:grid;place-items:center;font-size:14px}
+
+/* Favoritos */
+.favs{background:var(--sand);border:2px solid var(--ink);border-radius:18px;padding:14px;margin-top:14px}
+.favs h3{margin:0 0 2px;font-size:17px}
+.favs .hint{margin:0 0 4px}
+
+/* Resumen tipo ticket */
+.ticket{background:var(--sand);border:2px dashed var(--ink);border-radius:18px;padding:6px 16px;margin-top:14px}
+.ticket div{display:flex;justify-content:space-between;gap:14px;padding:11px 0;border-bottom:2px dotted rgba(42,27,94,.25)}
+.ticket div:last-child{border:0}
+.ticket dt{color:var(--mut);font-size:14px;font-weight:800;flex:none}
+.ticket dd{margin:0;text-align:right;font-weight:800;overflow-wrap:anywhere}
+.note{display:flex;gap:10px;align-items:flex-start;background:#FFF1F4;border:2px dashed var(--coral);border-radius:16px;padding:12px 14px;margin-top:14px;font-size:14.5px;font-weight:700}
+.note .e{font-size:22px;line-height:1.2}
+.err{color:var(--err);font-weight:800;margin:12px 0 0;font-size:15px}
+.err:empty{display:none}
+
+/* Estado del envío */
+.statebadge{display:flex;gap:12px;align-items:flex-start;padding:16px;border:2px solid var(--ink);border-radius:18px;background:var(--lilac);margin:14px 0}
+.statebadge .e{font-size:30px;line-height:1}
+.statebadge b{display:block;font-size:19px;line-height:1.2;margin-bottom:3px}
+.statebadge span{font-size:15px;font-weight:700}
+.statebadge.warn{background:#FFE9A6}
+.statebadge.ok{background:#D3F9E8}
+.statebadge.stop{background:#FFE0E0}
+.timeline{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin:6px 0 4px}
+.stage{text-align:center;font-size:11px;line-height:1.2;color:var(--mut);font-weight:600}
+.stage i{display:grid;place-items:center;width:28px;height:28px;margin:0 auto 6px;border-radius:50%;background:var(--lilac);border:2px solid var(--ink);font-style:normal;font-size:13px;color:var(--ink)}
+.stage.done i{background:var(--mint);color:#fff}
+.stage.done{color:var(--mintd)}
+.stage.active i{background:var(--y);transform:scale(1.18);animation:bob 1.6s ease-in-out infinite}
+.stage.active{color:var(--ink)}
+@keyframes bob{50%{transform:scale(1.18) translateY(-3px)}}
+.quote{text-align:center;background:var(--y);border:2px solid var(--ink);border-radius:20px;padding:18px 14px;margin:14px 0;box-shadow:0 4px 0 var(--ink)}
+.quote p{margin:0;font-weight:800}
+.quote .price{display:block;font:700 54px/1.05 "Fredoka",sans-serif;letter-spacing:-.03em;margin:6px 0 4px}
+.paid{display:flex;justify-content:space-between;align-items:center;background:var(--sand);border:2px solid var(--ink);border-radius:16px;padding:12px 16px;margin:14px 0}
+.paid b{font-size:20px}
+.driver{border:2px solid var(--ink);border-radius:18px;padding:16px;margin-top:14px;background:#fff}
+.driver .who{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.avatar{width:50px;height:50px;border-radius:50%;background:var(--violet);color:#fff;display:grid;place-items:center;font:700 22px "Fredoka",sans-serif;border:2px solid var(--ink);flex:none}
+.driver .who b{font-size:19px;display:block;line-height:1.2}
+.driver .who span{font-size:14px;color:var(--mut);font-weight:700}
+.kv{display:flex;flex-wrap:wrap;gap:8px;margin:2px 0 0}
+.kv span{background:var(--lilac);border-radius:999px;padding:5px 12px;font-size:14px;font-weight:800}
+.alias{margin-top:14px;background:var(--lilac);border-radius:16px;padding:14px}
+.alias>b{display:block;margin-bottom:8px;font-size:16px}
+.alias .arow{display:flex;gap:8px}
+.alias input{height:48px;font-weight:800}
+.alias .btn{width:auto;flex:none;height:48px;margin:0;font-size:14px;padding:0 14px}
+.alias small{display:block;margin-top:8px;color:var(--mut);font-size:13px;font-weight:700}
+.trackhead{display:flex;align-items:center;gap:10px}
+.trackhead h3{margin:0;font-size:20px}
+.pulse{width:12px;height:12px;border-radius:50%;background:var(--coral);animation:pl 1.4s infinite}
+@keyframes pl{0%{box-shadow:0 0 0 0 rgba(255,92,122,.6)}100%{box-shadow:0 0 0 12px rgba(255,92,122,0)}}
+
+/* Avisos */
+.notify{display:flex;gap:12px;align-items:center;background:var(--lilac);border:2px solid var(--ink);border-radius:var(--r);box-shadow:0 4px 0 var(--ink);padding:14px 16px;margin-bottom:18px}
+.notify .e{font-size:28px}
+.notify div{flex:1;min-width:0}
+.notify b{display:block;font-size:16px;line-height:1.2}
+.notify small{display:block;font:700 13px/1.35 "Nunito",sans-serif;color:var(--mut);margin-top:2px}
+.notify .btn{width:auto;margin:0;height:42px;padding:0 14px;font-size:14px;flex:none}
+
+/* Modal favoritos */
+.modal{position:fixed;inset:0;z-index:1000;background:rgba(42,27,94,.65);display:flex;align-items:flex-end;justify-content:center;padding:14px;padding-bottom:calc(14px + env(safe-area-inset-bottom,0px))}
+.sheet{width:min(100%,520px);max-height:84vh;overflow:auto;background:#fff;border:2px solid var(--ink);border-radius:26px;padding:20px;box-shadow:0 6px 0 var(--ink);animation:up .25s ease-out}
+@keyframes up{from{transform:translateY(30px);opacity:0}}
+.sheet h3{margin:0;font-size:22px}
+.sheet p{margin:4px 0 12px;color:var(--mut);font-weight:700;font-size:15px}
+.favlist{display:grid;gap:10px;margin:8px 0}
+.favlist:empty:after{content:"Todavía no guardaste destinos. Marcá uno en el mapa y tocá Guardar el destino marcado.";display:block;padding:14px;border-radius:14px;background:var(--sand);font-weight:700;font-size:14.5px;color:var(--mut)}
+.fav-item{display:flex;gap:8px}
+.fav-pick{flex:1;text-align:left;white-space:pre-line;border:2px solid var(--ink);border-radius:16px;background:var(--sand);color:var(--ink);padding:12px 14px;font:700 15px/1.3 "Nunito",sans-serif;cursor:pointer;height:auto;min-height:52px}
+.fav-rm{width:52px;flex:none;border:2px solid var(--err);border-radius:16px;background:#fff;color:var(--err);font-size:18px;cursor:pointer}
+
+
+/* Historial y herramientas para empresas */
+.history-card{background:#fff;border:2px solid var(--ink);border-radius:var(--r);box-shadow:0 5px 0 var(--ink);padding:18px;margin:18px 0}
+.history-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.history-head h2{font:700 23px/1.1 "Fredoka",sans-serif;margin:0 0 4px}
+.history-head p{font-size:14px;color:var(--mut);font-weight:700;margin:0}
+.history-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.history-stat{background:var(--sand);border:1.5px solid var(--ink);border-radius:14px;padding:10px 7px;text-align:center;min-width:0}
+.history-stat b{display:block;font:700 21px "Fredoka",sans-serif;overflow-wrap:anywhere}
+.history-stat span{font-size:11px;font-weight:800;color:var(--mut);line-height:1.2;display:block}
+.history-list{display:grid;gap:10px}
+.history-item{border:1.5px solid #ded6f5;border-radius:15px;padding:12px;background:#fff}
+.history-item-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.history-item b{font-size:15px}
+.history-item small{color:var(--mut);font-weight:700}
+.history-item p{margin:7px 0;font-size:13px;line-height:1.35;overflow-wrap:anywhere}
+.history-actions{display:flex;gap:8px}
+.history-actions .btn{flex:1;width:auto;height:42px;margin:4px 0 0;padding:0 10px;font-size:13px}
+.history-empty{padding:14px;border-radius:14px;background:var(--sand);font-size:14px;color:var(--mut);font-weight:700}
+@media(max-width:360px){.history-card{padding:14px}.history-stats{gap:5px}.history-stat b{font-size:18px}.history-actions{flex-direction:column}}
+
+/* Toast */
+#toast{position:fixed;left:50%;bottom:calc(22px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);opacity:0;pointer-events:none;background:var(--ink);color:#fff;padding:13px 20px;border-radius:999px;font-weight:800;font-size:15px;max-width:min(92vw,460px);text-align:center;z-index:2000;transition:transform .25s,opacity .25s}
+#toast.on{transform:translate(-50%,0);opacity:1}
+
+footer{text-align:center;color:var(--mut);font-size:13.5px;font-weight:700;padding:8px 0 4px}
+footer b{color:var(--ink)}
+.panel{animation:in .3s ease-out}
+@keyframes in{from{opacity:0;transform:translateY(10px)}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}html{scroll-behavior:auto}}
+@media(max-width:380px){.card{padding:16px}.quote .price{font-size:46px}.timeline{gap:2px}.stage{font-size:10px}}
+</style></head>
+<body>
+<header class="hero">
+ <div class="wrap">
+  <div class="top">
+   <div class="brand"><img src="icon-192.png" alt="" onerror="this.remove()"><span>GPTAXI <b>Empresas</b></span></div>
+   <button class="inst" id="instBtn" type="button" hidden>📲 Instalar</button>
+   <span class="net" id="net"><i></i><em id="netText">En línea</em></span>
+  </div>
+  <h1>Tu paquete llega <mark>en moto</mark></h1>
+  <p class="lead">Pedí el envío, recibí la tarifa del chofer y seguilo en el mapa.</p>
+  <ul class="chips" aria-label="Beneficios del servicio"><li>⚡ Rápido</li><li>🤝 Confiable y seguro</li><li>📍 Seguimiento en vivo</li></ul>
+
+ </div>
+</header>
+
+<main class="wrap">
+
+ <div id="iosTip" class="ios-tip" hidden>📲 Para instalar en iPhone: tocá <b>Compartir</b> y luego <b>“Agregar a inicio”</b>.</div>
+
+ <section id="notifyCard" class="notify" hidden>
+  <span class="e" id="notifyIcon">🔔</span>
+  <div><b id="notifyTitle">Activá los avisos</b><small id="notifyText">Te avisamos cuando el chofer te mande la tarifa.</small></div>
+  <button class="btn sm violet" id="pushBtn" type="button" onclick="activarPush()">Activar</button>
+ </section>
+
+ <!-- Pedido en 3 pasos -->
+ <section id="wizard">
+  <div class="stepper" id="stepper" data-s="1" aria-label="Pasos para solicitar un envío">
+   <button type="button" class="node active" id="ep-1" onclick="empresaNext(1)" aria-label="Paso 1: Retiro"><span>1</span><em>Retiro</em></button>
+   <div class="bar"><i></i></div>
+   <button type="button" class="node" id="ep-2" onclick="empresaNext(2)" aria-label="Paso 2: Entrega"><span>2</span><em>Entrega</em></button>
+   <div class="bar"><i></i></div>
+   <button type="button" class="node" id="ep-3" onclick="empresaNext(3)" aria-label="Paso 3: Confirmar"><span>3</span><em>Confirmar</em></button>
+  </div>
+
+  <div class="card panel" id="empresa-step1">
+   <h2>¿Desde dónde sale el paquete?</h2>
+   <p class="sub">Contanos quién envía y marcá el punto exacto de retiro.</p>
+   <label for="empSender">Negocio o remitente</label>
+   <input id="empSender" autocomplete="organization" maxlength="100" placeholder="Ej.: Despensa La Esquina">
+   <label for="empPhone">Tu teléfono <small>(opcional)</small></label>
+   <input id="empPhone" inputmode="tel" autocomplete="tel" maxlength="30" placeholder="Para que el chofer te contacte">
+   <button type="button" class="btn violet" id="empGps" onclick="empresaGPS()">📍 Usar mi ubicación exacta</button>
+   <p class="hint" id="empGpsStatus">Activá el GPS del celular y tocá el botón, o marcá el punto en el mapa.</p>
+   <label for="empPickup">Dirección o referencia del retiro</label>
+   <input id="empPickup" maxlength="180" placeholder="Se completa con GPS o mapa">
+   <div id="empPickupMap" class="map" role="application" aria-label="Mapa para marcar el retiro"></div>
+   <button type="button" class="btn ghost sm" onclick="empresaUseMap('pickup')">👆 Marcar el retiro en el mapa</button>
+   <button type="button" class="btn" onclick="empresaNext(2)">Siguiente: la entrega →</button>
+  </div>
+
+  <div class="card panel" id="empresa-step2" hidden>
+   <h2>¿A dónde lo llevamos?</h2>
+   <p class="sub">Marcá el destino y completá los datos de quien recibe.</p>
+   <label for="empRecipient">Nombre del destinatario</label>
+   <input id="empRecipient" maxlength="100" placeholder="Nombre y apellido">
+   <label for="empRecipientPhone">Teléfono del destinatario</label>
+   <input id="empRecipientPhone" type="tel" inputmode="tel" autocomplete="tel" maxlength="30" required aria-required="true" placeholder="Teléfono de contacto">
+   <label for="empDropoff">Dirección o referencia de entrega</label>
+   <input id="empDropoff" maxlength="180" placeholder="Se completa al marcar el destino">
+   <div id="empDropoffMap" class="map" role="application" aria-label="Mapa para marcar la entrega"></div>
+   <button type="button" class="btn ghost sm" onclick="empresaUseMap('dropoff')">🏁 Marcar la entrega en el mapa</button>
+   <div class="favs">
+    <h3>⭐ Destinos guardados</h3>
+    <p class="hint">Reutilizá una entrega frecuente sin buscarla de nuevo.</p>
+    <div class="row">
+     <button type="button" class="btn ghost sm" onclick="empresaOpenFavorites()">📂 Favoritos</button>
+     <button type="button" class="btn ghost sm" onclick="empresaSaveFavorite()">＋ Guardar</button>
+    </div>
+   </div>
+   <label>¿Qué tamaño tiene el paquete?</label>
+   <div class="opts" role="radiogroup" aria-label="Tamaño del paquete">
+    <button type="button" class="opt" data-size="Sobre o documento" aria-pressed="false" onclick="empresaSelectParcel(this)"><span class="e">✉️</span><b>Sobre / documento</b><small>Papeles y sobres</small></button>
+    <button type="button" class="opt" data-size="Pequeño" aria-pressed="false" onclick="empresaSelectParcel(this)"><span class="e">📦</span><b>Pequeño</b><small>Chico y liviano</small></button>
+    <button type="button" class="opt" data-size="Mediano" aria-pressed="false" onclick="empresaSelectParcel(this)"><span class="e">🗃️</span><b>Mediano</b><small>Tamaño intermedio</small></button>
+    <button type="button" class="opt" data-size="Grande" aria-pressed="false" onclick="empresaSelectParcel(this)"><span class="e">🧳</span><b>Grande</b><small>Voluminoso</small></button>
+   </div>
+   <div class="row">
+    <button type="button" class="btn ghost" onclick="empresaNext(1)">← Atrás</button>
+    <button type="button" class="btn" onclick="empresaNext(3)">Revisar →</button>
+   </div>
+  </div>
+
+  <div class="card panel" id="empresa-step3" hidden>
+   <h2>Todo listo, revisá tu envío</h2>
+   <p class="sub">Al confirmar, los choferes reciben la solicitud y te mandan su tarifa.</p>
+   <dl class="ticket" id="empresaSummary"></dl>
+   <div class="row">
+    <button type="button" class="btn ghost" onclick="empresaNext(2)">← Atrás</button>
+    <button type="button" class="btn coral" id="empresaSend" onclick="solicitarEnvio()">📦 Pedir envío</button>
+   </div>
+   <div class="err" id="empresaError" role="status"></div>
+  </div>
+ </section>
+
+ <!-- Seguimiento -->
+ <section id="status" hidden>
+  <div class="card panel">
+   <h2>Tu envío</h2>
+   <div id="live" aria-live="polite"></div>
+  </div>
+  <div class="card panel" id="trackPanel" hidden>
+   <div class="trackhead"><span class="pulse"></span><h3>Seguimiento en el mapa</h3></div>
+   <p class="hint" id="trackText">Esperando ubicación del chofer…</p>
+   <div id="trackMap" class="map tall" role="application" aria-label="Mapa de seguimiento del paquete"></div>
+  </div>
+ </section>
+
+
+ <section class="history-card" id="historyCard" aria-labelledby="historyTitle">
+  <div class="history-head"><div><h2 id="historyTitle">📋 Mis envíos</h2><p>Historial guardado en este dispositivo.</p></div></div>
+  <div class="history-stats" id="historyStats"></div>
+  <div class="history-list" id="historyList"></div>
+ </section>
+
+ <footer>GPTAXI <b>Empresas</b> · Mensajería en moto para negocios</footer>
+</main>
+
+<div id="favModal" class="modal" hidden role="dialog" aria-modal="true" aria-labelledby="favTitle" onclick="if(event.target===this)empresaCloseFavorites()">
+ <div class="sheet">
+  <h3 id="favTitle">⭐ Mis destinos favoritos</h3>
+  <p>Elegí un destino para usarlo en este envío.</p>
+  <div id="empresaFavoriteList" class="favlist"></div>
+  <button type="button" class="btn ghost" onclick="empresaCloseFavorites()">Cerrar</button>
+ </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+const db=supabase.createClient("https://vffcjijwrgerdyujvlcf.supabase.co","sb_publishable_rv-VVSkeii8-_0pfS-EZCw_d2XkD1-Q",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:false}});
+const $=i=>document.getElementById(i);
+const el=(t,c,x)=>{const e=document.createElement(t);if(c)e.className=c;if(x!=null)e.textContent=x;return e};
+const store={get:k=>{try{return localStorage.getItem(k)}catch(e){return null}},set:(k,v)=>{try{localStorage.setItem(k,v)}catch(e){}},del:k=>{try{localStorage.removeItem(k)}catch(e){}}};
+const money=n=>"$"+Number(n).toLocaleString("es-AR");
+const cid=store.get("cid")||(()=>{const v=crypto.randomUUID();store.set("cid",v);return v})();
+const RIDE_KEY="gptaxi_empresas_ride_v1",EMP_FAVORITES_KEY="gptaxi_empresa_favorite_destinations_v1",EMP_HISTORY_KEY="gptaxi_empresas_history_v1";
+const LIVE=["pendiente","cotizado","aceptado","en_camino","en_viaje"];
+const isEmp=r=>!!r&&String(r.pickup||"").includes("EMPRESAS");
+const hav=(a,b)=>{const r=x=>x*Math.PI/180,h=Math.sin(r(b.lat-a.lat)/2)**2+Math.cos(r(a.lat))*Math.cos(r(b.lat))*Math.sin(r(b.lng-a.lng)/2)**2;return 12742*Math.asin(Math.sqrt(h))};
+const CENTER=[-25.97,-54.57];
+
+/* ---------- Avisos en pantalla ---------- */
+let toastT=null;
+function toast(msg){const t=$("toast");t.textContent=msg;t.classList.add("on");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("on"),3600)}
+
+/* ---------- Conexión ---------- */
+function refreshConnection(){const on=navigator.onLine;$("net").classList.toggle("off",!on);$("netText").textContent=on?"En línea":"Sin conexión"}
+addEventListener("online",refreshConnection);addEventListener("offline",refreshConnection);
+
+/* ---------- Estado persistente ---------- */
+let ride=null;
+try{const r=JSON.parse(store.get(RIDE_KEY)||"null");if(isEmp(r))ride=r}catch(e){}
+$("empSender").value=store.get("gptaxi_emp_sender")||"";
+$("empPhone").value=store.get("gptaxi_emp_phone")||"";
+
+/* ---------- Notificaciones locales y push ---------- */
+const VAPID="BGsIfi8ZkrDD8mglmkExXZk-_JIl4s6uBIaKLTzEFmfkflN2iFPLWY2BXNBI9VWi2L4EInr68IMoPj2dJa_pTJM";
+const b64=u=>{const a=atob((u+"=".repeat((4-u.length%4)%4)).replace(/-/g,"+").replace(/_/g,"/"));return Uint8Array.from([...a].map(c=>c.charCodeAt(0)))};
+async function notif(title,body,tag){try{if(!("Notification" in window)||Notification.permission!=="granted"||!("serviceWorker" in navigator))return;
+const reg=await navigator.serviceWorker.ready;if(tag&&(await reg.getNotifications({tag})).length)return;
+await reg.showNotification(title,{body,icon:"icon-192.png",badge:"badge-96.png",tag:tag||undefined,requireInteraction:true,lang:"es",vibrate:[600,200,600,200,600,200,900]})}catch(e){}}
+async function refreshPushUI(){
+ const card=$("notifyCard");
+ const perm=("Notification" in window)?Notification.permission:"unsupported";
+ let subscribed=false;
+ try{if("serviceWorker" in navigator&&"PushManager" in window){const reg=await navigator.serviceWorker.ready;subscribed=!!(await reg.pushManager.getSubscription())}}catch(e){}
+ if(perm==="unsupported"||(perm==="granted"&&subscribed)){card.hidden=true;return}
+ card.hidden=false;
+ if(perm==="denied"){$("notifyIcon").textContent="🔕";$("notifyTitle").textContent="Avisos bloqueados";$("notifyText").textContent="Permití las notificaciones del sitio en los ajustes de Chrome para recibir la tarifa.";$("pushBtn").hidden=true}
+ else{$("notifyIcon").textContent="🔔";$("notifyTitle").textContent="Activá los avisos";$("notifyText").textContent="Te avisamos apenas el chofer te mande la tarifa.";$("pushBtn").hidden=false}
+}
+async function activarPush(silent){
+ if(!("serviceWorker" in navigator)||!("PushManager" in window)||!("Notification" in window)){if(!silent)toast("Este navegador no permite notificaciones. Abrí la página desde Chrome.");return}
+ let p=Notification.permission;if(p!=="granted")p=await Notification.requestPermission();
+ if(p!=="granted"){await refreshPushUI();if(!silent)toast("No diste permiso para las notificaciones.");return}
+ try{const reg=await navigator.serviceWorker.ready;
+  const sub=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID)});
+  const {error}=await db.rpc("save_push",{p_role:"cliente",p_client_id:cid,p_sub:sub.toJSON()});
+  if(error){if(!silent)toast("No se pudo activar: "+error.message);return}
+  await refreshPushUI();if(!silent)toast("✅ Avisos activados")
+ }catch(e){await refreshPushUI();if(!silent)toast("No se pudo activar: "+e.message)}
+}
+if("serviceWorker" in navigator){addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));navigator.serviceWorker.addEventListener("message",e=>{if(e.data&&e.data.type==="push")refreshC()})}
+
+/* ---------- Mapas ---------- */
+let empresaPickupPoint=null,empresaDropoffPoint=null,empresaPickupMap=null,empresaDropoffMap=null;
+let empresaPickupMarker=null,empresaDropoffMarker=null,empresaParcelSize="";
+const mapIcon=label=>L.divIcon({className:"moto",html:label,iconSize:[32,32],iconAnchor:[16,16]});
+const tiles=m=>L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{attribution:"© OpenStreetMap",maxZoom:19}).addTo(m);
+function empresaInitMaps(){
+ if(!empresaPickupMap){empresaPickupMap=L.map("empPickupMap").setView(CENTER,14);tiles(empresaPickupMap);empresaPickupMap.on("click",e=>empresaSetPoint("pickup",e.latlng))}
+ if(!empresaDropoffMap){empresaDropoffMap=L.map("empDropoffMap").setView(CENTER,14);tiles(empresaDropoffMap);empresaDropoffMap.on("click",e=>empresaSetPoint("dropoff",e.latlng))}
+ setTimeout(()=>{empresaPickupMap.invalidateSize();empresaDropoffMap.invalidateSize()},120);
+}
+async function empresaReverse(ll){
+ try{const r=await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&zoom=17&accept-language=es&lat=${ll.lat}&lon=${ll.lng}`);
+  const j=await r.json(),a=j.address||{};
+  return [j.name,a.road,a.house_number,a.neighbourhood||a.suburb,a.city||a.town||a.village||a.municipality].filter(Boolean).filter((x,i,a)=>a.indexOf(x)===i).join(", ")||`${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`;
+ }catch(e){return `${ll.lat.toFixed(5)}, ${ll.lng.toFixed(5)}`}
+}
+async function empresaSetPoint(kind,ll){
+ const point={lat:ll.lat,lng:ll.lng},map=kind==="pickup"?empresaPickupMap:empresaDropoffMap;
+ if(kind==="pickup"){
+  empresaPickupPoint=point;
+  if(empresaPickupMarker)empresaPickupMarker.setLatLng(ll);else empresaPickupMarker=L.marker(ll,{icon:mapIcon("📦")}).addTo(map);
+  $("empGpsStatus").className="hint";$("empGpsStatus").textContent="Buscando la dirección del punto de retiro…";
+ }else{
+  empresaDropoffPoint=point;
+  if(empresaDropoffMarker)empresaDropoffMarker.setLatLng(ll);else empresaDropoffMarker=L.marker(ll,{icon:mapIcon("🏁")}).addTo(map);
+ }
+ const address=await empresaReverse(point);
+ if(kind==="pickup"){$("empPickup").value=address;$("empGpsStatus").className="hint ok";$("empGpsStatus").textContent="✅ Retiro marcado: "+address}
+ else $("empDropoff").value=address;
+}
+function empresaUseMap(kind){
+ empresaInitMaps();
+ const m=kind==="pickup"?empresaPickupMap:empresaDropoffMap;
+ setTimeout(()=>{m.invalidateSize();m.getContainer().scrollIntoView({behavior:"smooth",block:"center"})},100);
+ toast("Tocá el mapa para marcar el punto");
+}
+function empresaGPS(){
+ const st=$("empGpsStatus"),btn=$("empGps");
+ if(!navigator.geolocation){st.className="hint";st.textContent="Este navegador no permite GPS. Marcá el punto en el mapa.";return}
+ btn.disabled=true;btn.textContent="Buscando ubicación exacta…";
+ navigator.geolocation.getCurrentPosition(async p=>{
+  const ll={lat:p.coords.latitude,lng:p.coords.longitude};
+  empresaInitMaps();empresaPickupMap.setView(ll,17);await empresaSetPoint("pickup",ll);
+  btn.disabled=false;btn.textContent="📍 Usar mi ubicación exacta";
+ },()=>{
+  st.className="hint";st.textContent="No se pudo obtener el GPS. Permití la ubicación del navegador o marcá el retiro en el mapa.";
+  btn.disabled=false;btn.textContent="📍 Intentar GPS de nuevo";
+ },{enableHighAccuracy:true,timeout:20000,maximumAge:0});
+}
+function empresaSelectParcel(btn){
+ empresaParcelSize=btn.dataset.size;
+ document.querySelectorAll(".opt").forEach(b=>{b.classList.toggle("selected",b===btn);b.setAttribute("aria-pressed",b===btn?"true":"false")});
+}
+
+/* ---------- Favoritos ---------- */
+function empresaGetFavorites(){try{return JSON.parse(store.get(EMP_FAVORITES_KEY)||"[]")}catch(e){return[]}}
+function empresaRenderFavorites(){
+ const box=$("empresaFavoriteList");box.replaceChildren();
+ empresaGetFavorites().forEach((f,i)=>{
+  const row=el("div","fav-item"),b=el("button","fav-pick","📍 "+f.name+(f.address&&f.address!==f.name?"\n"+f.address:""));
+  b.type="button";
+  b.onclick=async()=>{empresaInitMaps();empresaDropoffMap.setView([f.lat,f.lng],16);await empresaSetPoint("dropoff",f);$("empDropoff").value=f.address||f.name;empresaCloseFavorites();empresaNext(2)};
+  const rm=el("button","fav-rm","✕");rm.type="button";rm.setAttribute("aria-label","Eliminar destino favorito "+f.name);
+  rm.onclick=()=>{if(!confirm("¿Eliminar el destino favorito "+f.name+"?"))return;const a=empresaGetFavorites();a.splice(i,1);store.set(EMP_FAVORITES_KEY,JSON.stringify(a));empresaRenderFavorites()};
+  row.append(b,rm);box.append(row)});
+}
+function empresaOpenFavorites(){empresaRenderFavorites();$("favModal").hidden=false;document.body.style.overflow="hidden"}
+function empresaCloseFavorites(){$("favModal").hidden=true;document.body.style.overflow=""}
+function empresaSaveFavorite(){
+ if(!empresaDropoffPoint)return toast("Primero marcá el destino en el mapa.");
+ const favs=empresaGetFavorites();if(favs.length>=12)return toast("Podés guardar hasta 12 destinos. Eliminá uno para guardar otro.");
+ const address=$("empDropoff").value.trim(),name=prompt("¿Cómo querés llamar a este destino?",address||"Mi destino");
+ if(!name||!name.trim())return;
+ favs.push({name:name.trim().slice(0,50),address,lat:empresaDropoffPoint.lat,lng:empresaDropoffPoint.lng});
+ store.set(EMP_FAVORITES_KEY,JSON.stringify(favs));empresaRenderFavorites();toast("⭐ Destino guardado en este celular");
+}
+addEventListener("keydown",e=>{if(e.key==="Escape"&&!$("favModal").hidden)empresaCloseFavorites()});
+
+/* ---------- Pedido en 3 pasos ---------- */
+function empresaNext(step){
+ if(step===2){
+  if(!$("empSender").value.trim()){toast("Ingresá el nombre del negocio o remitente.");$("empSender").focus();return}
+  if(!empresaPickupPoint&&!$("empPickup").value.trim()){toast("Marcá el retiro con el GPS o tocando el mapa.");return}
+ }
+ if(step===3){
+  if(!empresaDropoffPoint){toast("Marcá la entrega tocando el mapa.");return}
+  if(!$("empRecipient").value.trim()){toast("Ingresá el nombre del destinatario.");$("empRecipient").focus();return}
+  if(!$("empRecipientPhone").value.trim()){toast("Ingresá el teléfono del destinatario.");$("empRecipientPhone").focus();return}
+  if(!empresaParcelSize){toast("Elegí el tamaño del paquete.");return}
+  const fields=[["Remitente",$("empSender").value.trim()],["Tel. remitente",$("empPhone").value.trim()||"No indicado"],["Retiro",$("empPickup").value.trim()],["Destinatario",$("empRecipient").value.trim()],["Tel. destinatario",$("empRecipientPhone").value.trim()],["Entrega",$("empDropoff").value.trim()],["Paquete",empresaParcelSize]];
+  const box=$("empresaSummary");box.replaceChildren();
+  fields.forEach(([k,v])=>{const d=el("div");d.append(el("dt",0,k),el("dd",0,v));box.append(d)});
+ }
+ for(let i=1;i<=3;i++){
+  $("empresa-step"+i).hidden=i!==step;
+  const n=$("ep-"+i);n.classList.toggle("active",i===step);n.classList.toggle("done",i<step);
+ }
+ $("stepper").dataset.s=step;
+ if(step===1||step===2){empresaInitMaps();setTimeout(()=>(step===1?empresaPickupMap:empresaDropoffMap).invalidateSize(),120)}
+ $("empresaError").textContent="";
+ $("stepper").scrollIntoView({behavior:"smooth",block:"start"});
+}
+async function slackNotify(r,status){try{if(!r||!r.id||!status)return;db.functions.invoke("slack-notify",{body:{ride_id:r.id,event:status}}).catch(()=>{})}catch(e){}}
+function empresaHistoryGet(){try{return JSON.parse(store.get(EMP_HISTORY_KEY)||"[]").filter(x=>x&&x.id)}catch(e){return[]}}
+function empresaHistorySave(r,extra={}){
+ if(!r||!r.id||!isEmp(r))return;
+ const list=empresaHistoryGet(),old=list.find(x=>String(x.id)===String(r.id))||{};
+ const item={...old,...r,...extra,id:r.id,history_updated_at:new Date().toISOString()};
+ const i=list.findIndex(x=>String(x.id)===String(r.id));if(i>=0)list.splice(i,1);list.unshift(item);
+ store.set(EMP_HISTORY_KEY,JSON.stringify(list.slice(0,50)));empresaRenderHistory();
+}
+function empresaStatusLabel(s){return ({pendiente:"Buscando chofer",cotizado:"Tarifa recibida",aceptado:"Chofer asignado",en_camino:"Yendo al retiro",en_viaje:"En camino",finalizado:"Entregado",cancelado:"Cancelado"})[s]||s||"Sin estado"}
+function empresaEsc(s){return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function empresaRenderHistory(){
+ const box=$("historyList"),stats=$("historyStats");if(!box||!stats)return;
+ const list=empresaHistoryGet(),done=list.filter(x=>x.status==="finalizado"),active=list.filter(x=>LIVE.includes(x.status)),spent=list.filter(x=>x.price!=null&&x.status!=="cancelado").reduce((n,x)=>n+Number(x.price||0),0);
+ stats.replaceChildren();[[String(active.length),"Activos"],[String(done.length),"Entregados"],[money(spent),"Tarifas registradas"]].forEach(([v,k])=>{const d=el("div","history-stat");d.append(el("b",0,v),el("span",0,k));stats.append(d)});
+ box.replaceChildren();if(!list.length){box.append(el("div","history-empty","Todavía no hay envíos guardados en este dispositivo. Tus próximos pedidos aparecerán acá para que puedas consultar su estado y repetirlos."));return}
+ list.slice(0,8).forEach(r=>{
+  const item=el("article","history-item"),top=el("div","history-item-top"),left=el("div"),status=el("b",0,empresaStatusLabel(r.status));
+  const dt=r.created_at||r.history_updated_at;left.append(status,el("br"),el("small",0,dt?new Date(dt).toLocaleString("es-AR",{dateStyle:"short",timeStyle:"short"}):"Fecha no disponible"));
+  top.append(left,el("b",0,r.price!=null&&r.status!=="cancelado"?money(r.price):"Sin tarifa"));item.append(top);
+  item.append(el("p",0,"📦 "+(r.pickup_loc||r.empPickupSaved||"Retiro no registrado")),el("p",0,"🏁 "+(r.dropoff_loc||r.empDropoffSaved||"Entrega no registrada")));
+  const actions=el("div","history-actions"),receipt=el("button","btn ghost","🧾 Comprobante");receipt.type="button";receipt.onclick=()=>empresaPrintReceipt(r);
+  const repeat=el("button","btn","↻ Repetir envío");repeat.type="button";repeat.onclick=()=>empresaRepeat(r);
+  actions.append(receipt,repeat);item.append(actions);box.append(item);
+ });
+}
+function empresaPrintReceipt(r){
+ const date=r.created_at?new Date(r.created_at).toLocaleString("es-AR"):"No disponible";
+ const rows=[["NÚMERO DE ENVÍO",r.id],["FECHA",date],["ESTADO",empresaStatusLabel(r.status)],["NEGOCIO / REMITENTE",r.empSenderSaved||String(r.client_name||"").split(" · Tel.")[0]],["RETIRO",r.pickup_loc||r.empPickupSaved],["ENTREGA",r.dropoff_loc||r.empDropoffSaved],["DESTINATARIO",r.empRecipientSaved],["TELÉFONO DESTINATARIO",r.empRecipientPhoneSaved],["CHOFER",r.driver_name],["TARIFA",r.price!=null&&r.status!=="cancelado"?money(r.price):"Pendiente de cotización"]];
+ const canvas=document.createElement("canvas"),ctx=canvas.getContext("2d");
+ if(!ctx){toast("No se pudo generar el comprobante. Probá nuevamente.");return}
+ const width=440,pad=28,lineH=23,inner=width-pad*2;let y=30;
+ canvas.width=width;canvas.height=1800;
+ function wrap(text,maxWidth,font){ctx.font=font;const words=String(text||"—").split(/\s+/);let lines=[],line="";for(const word of words){const test=line?line+" "+word:word;if(ctx.measureText(test).width>maxWidth&&line){lines.push(line);line=word}else line=test}if(line)lines.push(line);return lines}
+ function textLines(text,x,top,maxWidth,font,color){ctx.font=font;ctx.fillStyle=color;const lines=wrap(text,maxWidth,font);lines.forEach((line,i)=>ctx.fillText(line,x,top+i*lineH));return lines.length*lineH}
+ ctx.fillStyle="#ffffff";ctx.fillRect(0,0,width,canvas.height);
+ ctx.fillStyle="#2A1B5E";ctx.fillRect(0,0,width,140);
+ ctx.textAlign="center";ctx.font="bold 27px Arial";ctx.fillStyle="#ffffff";ctx.fillText("GPTAXI",width/2,48);ctx.font="bold 18px Arial";ctx.fillText("EMPRESAS",width/2,76);ctx.font="13px Arial";ctx.fillText("COMPROBANTE DE ENVÍO",width/2,108);ctx.textAlign="left";y=166;
+ ctx.fillStyle="#6B5F9A";ctx.font="12px Arial";ctx.fillText("RESUMEN DEL ENVÍO",pad,y);y+=22;
+ rows.forEach(([label,value])=>{ctx.fillStyle="#6B5F9A";ctx.font="bold 10px Arial";ctx.fillText(label,pad,y);y+=17;const used=textLines(value,pad,y,inner,"14px Arial","#2A1B5E");y+=Math.max(used,18)+8;ctx.strokeStyle="#e6e2ef";ctx.beginPath();ctx.moveTo(pad,y);ctx.lineTo(width-pad,y);ctx.stroke();y+=13});
+ y+=5;ctx.textAlign="center";ctx.fillStyle="#6B5F9A";ctx.font="11px Arial";ctx.fillText("Conservá este comprobante para tu control.",width/2,y);y+=28;
+ const finalCanvas=document.createElement("canvas");finalCanvas.width=width;finalCanvas.height=y;finalCanvas.getContext("2d").drawImage(canvas,0,0,width,y,0,0,width,y);
+ finalCanvas.toBlob(blob=>{if(!blob){toast("No se pudo generar el JPG. Probá nuevamente.");return}const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="comprobante-gptaxi-"+String(r.id||"envio").replace(/[^a-zA-Z0-9_-]/g,"")+".jpg";document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1500)},"image/jpeg",0.95);
+}
+
+function empresaRepeat(r){
+ store.del(RIDE_KEY);ride=null;lastSig="";empresaReset();
+ $("empSender").value=r.empSenderSaved||String(r.client_name||"").split(" · Tel.")[0]||store.get("gptaxi_emp_sender")||"";
+ $("empPhone").value=r.empPhoneSaved||store.get("gptaxi_emp_phone")||"";
+ $("empRecipient").value=r.empRecipientSaved||"";$("empRecipientPhone").value=r.empRecipientPhoneSaved||"";
+ $("empPickup").value=r.pickup_loc||r.empPickupSaved||"";$("empDropoff").value=r.dropoff_loc||r.empDropoffSaved||"";
+ empresaPickupPoint=r.pickup_lat!=null&&r.pickup_lng!=null?{lat:Number(r.pickup_lat),lng:Number(r.pickup_lng)}:null;
+ empresaDropoffPoint=r.dropoff_lat!=null&&r.dropoff_lng!=null?{lat:Number(r.dropoff_lat),lng:Number(r.dropoff_lng)}:null;
+ empresaParcelSize=r.empParcelSaved||((String(r.pickup||"").match(/PAQUETE:\s*([^·]+)/)||[])[1]||"").trim();
+ empresaInitMaps();setTimeout(()=>{
+  if(empresaPickupPoint){empresaPickupMap.setView([empresaPickupPoint.lat,empresaPickupPoint.lng],16);if(empresaPickupMarker)empresaPickupMarker.setLatLng(empresaPickupPoint);else empresaPickupMarker=L.marker(empresaPickupPoint,{icon:mapIcon("📦")}).addTo(empresaPickupMap)}
+  if(empresaDropoffPoint){empresaDropoffMap.setView([empresaDropoffPoint.lat,empresaDropoffPoint.lng],16);if(empresaDropoffMarker)empresaDropoffMarker.setLatLng(empresaDropoffPoint);else empresaDropoffMarker=L.marker(empresaDropoffPoint,{icon:mapIcon("🏁")}).addTo(empresaDropoffMap)}
+  document.querySelectorAll(".opt").forEach(b=>{const yes=b.dataset.size===empresaParcelSize;b.classList.toggle("selected",yes);b.setAttribute("aria-pressed",yes?"true":"false")});
+ },150);
+ render();empresaNext(1);toast("Revisá los datos y confirmá el nuevo envío.");
+}
+
+async function solicitarEnvio(){
+ const btn=$("empresaSend"),err=$("empresaError");err.textContent="";
+ if(!navigator.onLine){err.textContent="Necesitás conexión a internet para pedir el envío.";return}
+ if(!empresaPickupPoint||!empresaDropoffPoint){err.textContent="Falta marcar el retiro y la entrega en el mapa.";return}
+ btn.disabled=true;btn.textContent="Enviando…";
+ try{
+  const sender=$("empSender").value.trim(),phone=$("empPhone").value.trim();
+  const recipient=$("empRecipient").value.trim(),recipientPhone=$("empRecipientPhone").value.trim();
+  const pickup=$("empPickup").value.trim(),dropoff=$("empDropoff").value.trim();
+  const row={
+   client_id:cid,client_name:sender+(phone?" · Tel. "+phone:""),
+   pickup_loc:pickup,dropoff_loc:dropoff,
+   pickup:"📦 EMPRESAS · RETIRO: "+pickup+" · REMITENTE: "+sender+" · TEL: "+(phone||"No indicado")+" · PAQUETE: "+empresaParcelSize,
+   dropoff:"📦 EMPRESAS · ENTREGA: "+dropoff+" · DESTINATARIO: "+recipient+" · TEL: "+recipientPhone,
+   pickup_lat:empresaPickupPoint.lat,pickup_lng:empresaPickupPoint.lng,pickup_exact:true,
+   dropoff_lat:empresaDropoffPoint.lat,dropoff_lng:empresaDropoffPoint.lng,
+   distance_km:Math.round(hav(empresaPickupPoint,empresaDropoffPoint)*1.3*10)/10
+  };
+  const {data,error}=await db.from("rides").insert(row).select().single();
+  if(error)throw error;
+  store.set("gptaxi_emp_sender",sender);store.set("gptaxi_emp_phone",phone);
+  ride=data;store.set(RIDE_KEY,JSON.stringify(data));
+  empresaHistorySave(data,{empSenderSaved:sender,empPhoneSaved:phone,empRecipientSaved:recipient,empRecipientPhoneSaved:recipientPhone,empPickupSaved:pickup,empDropoffSaved:dropoff,empParcelSaved:empresaParcelSize});
+  slackNotify(data,"pendiente");
+  if(window.Notification&&Notification.permission==="granted")activarPush(true);
+  lastSig="";render();window.scrollTo({top:0,behavior:"smooth"});
+ }catch(e){err.textContent="No se pudo enviar: "+(e.message||"error desconocido")+". Revisá la conexión e intentá otra vez."}
+ finally{btn.disabled=false;btn.textContent="📦 Pedir envío"}
+}
+function empresaReset(){
+ for(const id of["empPickup","empDropoff","empRecipient","empRecipientPhone"])$(id).value="";
+ empresaPickupPoint=null;empresaDropoffPoint=null;empresaParcelSize="";
+ if(empresaPickupMarker&&empresaPickupMap){empresaPickupMap.removeLayer(empresaPickupMarker);empresaPickupMarker=null}
+ if(empresaDropoffMarker&&empresaDropoffMap){empresaDropoffMap.removeLayer(empresaDropoffMarker);empresaDropoffMarker=null}
+ document.querySelectorAll(".opt").forEach(b=>{b.classList.remove("selected");b.setAttribute("aria-pressed","false")});
+ $("empGpsStatus").className="hint";$("empGpsStatus").textContent="Activá el GPS del celular y tocá el botón, o marcá el punto en el mapa.";
+ $("empSender").value=store.get("gptaxi_emp_sender")||"";$("empPhone").value=store.get("gptaxi_emp_phone")||"";
+}
+
+/* ---------- Seguimiento del envío ---------- */
+async function upd(u,onlyStatus){
+ let q=db.from("rides").update(u).eq("id",ride.id);if(onlyStatus)q=q.eq("status",onlyStatus);
+ const {data:ud}=await q.select();if(u.status&&ud&&ud.length)slackNotify(ud[0],u.status);
+ await refreshC();
+}
+let refreshing=false;
+async function refreshC(){
+ if(!ride||refreshing)return;refreshing=true;
+ try{
+  const {data}=await db.from("rides").select().eq("id",ride.id).single();
+  if(!data)return;
+  if((data.rejected_by||[]).length>(ride.rejected_by||[]).length)notif("🚫 Un chofer no pudo tomar tu envío","Seguimos buscando otro chofer.","emp-rej-"+data.id+"-"+(data.rejected_by||[]).length);
+  if(data.status!==ride.status){
+   if(data.status==="cotizado")notif("💰 Tarifa: "+money(data.price||0),(data.driver_name||"El chofer")+" te envió su tarifa. Abrí la página para aceptar.","emp-"+data.id+"-cotizado");
+   if(data.status==="en_camino")notif("🏍️ El chofer va a retirar tu paquete",(data.driver_name||"El chofer")+" va camino al retiro.","emp-"+data.id+"-en_camino");
+   if(data.status==="finalizado")notif("✅ Paquete entregado","Tu envío llegó a destino.","emp-"+data.id+"-finalizado");
+  }
+  ride=data;store.set(RIDE_KEY,JSON.stringify(data));empresaHistorySave(data);render();
+ }catch(e){}finally{refreshing=false}
+}
+const STAGES=[["pendiente","Pedido"],["cotizado","Tarifa"],["aceptado","Chofer"],["en_camino","Retiro"],["en_viaje","Viaje"],["finalizado","Entrega"]];
+const BANNER={
+ pendiente:["🔎","Buscando chofer","Recibimos tu solicitud. Esperá a que un chofer te envíe su tarifa.","warn"],
+ cotizado:["💰","Tenés una tarifa","Revisá el importe y elegí aceptarla o rechazarla para seguir.","warn"],
+ aceptado:["✅","Chofer asignado","Prepará el paquete para el retiro.",""],
+ en_camino:["🏍️","Yendo a retirar","El chofer se dirige al punto de retiro indicado.",""],
+ en_viaje:["📦","Paquete en camino","Ya lo retiró y viaja hacia el destinatario.",""],
+ finalizado:["🎉","¡Entrega confirmada!","El chofer confirmó que el paquete llegó a destino.","ok"],
+ cancelado:["🚫","Solicitud cancelada","Esta solicitud fue cancelada.","stop"]
+};
+let driverCache={},lastSig="";
+async function getDriverInfo(name){if(!name)return null;if(driverCache[name])return driverCache[name];try{const {data}=await db.from("drivers").select("*").eq("name",name).maybeSingle();if(data){driverCache[name]=data;return data}}catch(e){}return null}
+function timeline(status){
+ const idx=STAGES.findIndex(s=>s[0]===status);if(idx<0)return null;
+ const row=el("div","timeline");row.setAttribute("aria-label","Etapas del envío");
+ STAGES.forEach((s,i)=>{const d=el("div","stage"+(i<idx?" done":i===idx?" active":""));d.append(el("i",0,i<idx?"✓":String(i+1)),el("span",0,s[1]));row.append(d)});
+ return row;
+}
+function driverCard(r,info){
+ const box=el("div","driver"),who=el("div","who"),name=r.driver_name||"A confirmar";
+ who.append(el("div","avatar",name.trim().charAt(0).toUpperCase()||"?"));
+ const t=el("div");t.append(el("b",0,name),el("span",0,"Tu chofer"));who.append(t);box.append(who);
+ const kv=el("div","kv");
+ const moto=info&&(info.moto||info.vehicle||info.vehiculo||info.motorcycle),plate=info&&(info.plate||info.patente||info.license_plate||info.moto_patente);
+ if(moto)kv.append(el("span",0,"🏍️ "+moto));if(plate)kv.append(el("span",0,"🔖 "+plate));
+ const phone=info&&(info.phone||info.telefono||info.phone_number||info.celular||info.whatsapp);
+ if(phone)kv.append(el("span",0,"📞 "+phone));
+ if(kv.children.length)box.append(kv);
+ if(phone){const wa=String(phone).replace(/\D/g,"");if(wa){const a=el("a","btn mint sm","💬 Escribirle por WhatsApp");a.href="https://wa.me/"+wa;a.target="_blank";a.rel="noopener noreferrer";box.append(a)}}
+ const alias=r.driver_alias||(info&&(info.alias||info.payment_alias||info.cbu_alias));
+ if(alias){
+  const pay=el("div","alias");pay.append(el("b",0,"💳 Alias para transferir"));
+  const row=el("div","arow"),field=el("input");field.type="text";field.readOnly=true;field.value=String(alias);field.setAttribute("aria-label","Alias del chofer para copiar");
+  const copy=el("button","btn violet","📋 Copiar");copy.type="button";
+  copy.onclick=async()=>{try{if(navigator.clipboard&&window.isSecureContext)await navigator.clipboard.writeText(String(alias));else{field.focus();field.select();if(!document.execCommand("copy"))throw new Error("copy")}copy.textContent="✅ Copiado";setTimeout(()=>copy.textContent="📋 Copiar",2200)}catch(e){field.focus();field.select();copy.textContent="Copiá a mano"}};
+  row.append(field,copy);pay.append(row,el("small",0,"Pegalo en tu billetera o banco para hacer la transferencia."));box.append(pay);
+ }
+ return box;
+}
+let trackMap=null,tDriver=null,tPickup=null,tDest=null,tLine=null;
+function updateTracking(r){
+ const panel=$("trackPanel"),active=["aceptado","en_camino","en_viaje"].includes(r.status);
+ panel.hidden=!active;if(!active)return;
+ const txt=$("trackText");
+ txt.textContent=r.status==="aceptado"?"El chofer está asignado y se prepara para ir al retiro.":r.status==="en_camino"?"El chofer va hacia el punto de retiro del paquete.":"El paquete fue retirado y viaja hacia el destinatario.";
+ if(!trackMap){trackMap=L.map("trackMap").setView([r.pickup_lat||CENTER[0],r.pickup_lng||CENTER[1]],14);tiles(trackMap)}
+ const pt=(a,b)=>a!=null&&b!=null?[Number(a),Number(b)]:null;
+ const pickup=pt(r.pickup_lat,r.pickup_lng),dest=pt(r.dropoff_lat,r.dropoff_lng),driver=pt(r.driver_lat,r.driver_lng);
+ if(pickup){if(tPickup)tPickup.setLatLng(pickup);else tPickup=L.marker(pickup,{icon:mapIcon("📦")}).addTo(trackMap)}
+ if(dest){if(tDest)tDest.setLatLng(dest);else tDest=L.marker(dest,{icon:mapIcon("🏁")}).addTo(trackMap)}
+ if(driver){if(tDriver)tDriver.setLatLng(driver);else tDriver=L.marker(driver,{icon:mapIcon("🏍️")}).addTo(trackMap);txt.textContent+=" Ubicación del chofer en vivo."}
+ else txt.textContent+=" La posición exacta aparece cuando el chofer comparta su GPS.";
+ if(pickup&&dest){if(tLine)tLine.setLatLngs([pickup,dest]);else tLine=L.polyline([pickup,dest],{color:"#5B3FD1",weight:4,dashArray:"4 10"}).addTo(trackMap)}
+ const b=[pickup,dest,driver].filter(Boolean);if(b.length)trackMap.fitBounds(b,{padding:[28,28],maxZoom:16});
+ setTimeout(()=>trackMap.invalidateSize(),120);
+}
+async function renderLive(r){
+ const sig=[r.status,r.price,r.driver_name,r.driver_alias].join("|");
+ if(sig===lastSig){updateTracking(r);return}
+ const info=["aceptado","en_camino","en_viaje","finalizado"].includes(r.status)?await getDriverInfo(r.driver_name):null;
+ if(!ride||ride.id!==r.id)return;
+ lastSig=sig;
+ const parts=[],bn=BANNER[r.status]||["ℹ️",String(r.status||"Estado desconocido"),"Seguí esta pantalla para ver las novedades del envío.",""];
+ const ban=el("div","statebadge "+bn[3]);ban.append(el("span","e",bn[0]));const bt=el("div");bt.append(el("b",0,bn[1]),el("span",0,bn[2]));ban.append(bt);parts.push(ban);
+ const tl=timeline(r.status);if(tl)parts.push(tl);
+ if(r.status==="cotizado"){
+  const q=el("div","quote");q.append(el("p",0,"Tarifa enviada por "+(r.driver_name||"un chofer")),el("span","price",money(r.price||0)),el("p",0,"El envío continúa solo cuando aceptás esta tarifa."));parts.push(q);
+  const row=el("div","row"),yes=el("button","btn mint","✅ Aceptar"),no=el("button","btn ghost","Rechazar");yes.type=no.type="button";
+  yes.onclick=async()=>{yes.disabled=no.disabled=true;await upd({status:"aceptado",event_at:new Date().toISOString()},"cotizado")};
+  no.onclick=async()=>{yes.disabled=no.disabled=true;await upd({status:"pendiente",driver_name:null,price:null,driver_alias:null,quoted_at:null,tariff_rejected_by:[...(r.tariff_rejected_by||[]),r.driver_name],event_at:new Date().toISOString()},"cotizado")};
+  row.append(yes,no);parts.push(row);
+ }else if(r.price!=null&&r.status!=="cancelado"){
+  const p=el("div","paid");p.append(el("span",0,"Tarifa acordada"),el("b",0,money(r.price)));parts.push(p);
+ }
+ if(["aceptado","en_camino","en_viaje","finalizado"].includes(r.status))parts.push(driverCard(r,info));
+ if(["pendiente","cotizado","aceptado"].includes(r.status)){
+  const c=el("button","btn ghost sm","Cancelar solicitud");c.type="button";
+  c.onclick=async()=>{if(r.status==="aceptado"&&!confirm("¿Cancelar el envío? Se le avisa al chofer."))return;c.disabled=true;await upd({status:"cancelado",event_at:new Date().toISOString()})};
+  parts.push(c);
+ }
+ if(["finalizado","cancelado"].includes(r.status)){
+  const name=(r.client_name||"").split(" · Tel.")[0].trim()||"tu negocio";
+  const again=el("button","btn coral","➕ Nuevo envío para "+name);again.type="button";
+  again.onclick=()=>{store.del(RIDE_KEY);ride=null;lastSig="";empresaReset();render();empresaNext(1)};
+  parts.push(again);
+ }
+ $("live").replaceChildren(...parts);
+ updateTracking(r);
+}
+function render(){
+ const live=isEmp(ride);
+ document.body.classList.toggle("live",live);
+ $("wizard").hidden=live;$("status").hidden=!live;
+ if(live)renderLive(ride);else{$("live").replaceChildren();$("trackPanel").hidden=true}
+}
+
+/* ---------- Arranque ---------- */
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)refreshC()});
+db.channel("rides-empresas").on("postgres_changes",{event:"*",schema:"public",table:"rides"},()=>{if(ride)refreshC()}).subscribe();
+setInterval(()=>{if(ride&&LIVE.includes(ride.status))refreshC()},4000);
+refreshConnection();refreshPushUI();empresaRenderFavorites();empresaRenderHistory();if(ride)empresaHistorySave(ride);render();
+if(!ride)empresaInitMaps();
+refreshC();
+</script>
+<script>
+/* ---------- Instalar PWA ---------- */
+(function(){
+ let ev=null;const btn=document.getElementById("instBtn"),tip=document.getElementById("iosTip");
+ const standalone=()=>matchMedia("(display-mode: standalone)").matches||navigator.standalone===true;
+ window.addEventListener("beforeinstallprompt",e=>{e.preventDefault();ev=e;if(!standalone())btn.hidden=false});
+ btn.addEventListener("click",async()=>{if(!ev)return;ev.prompt();try{await ev.userChoice}catch(_){}ev=null;btn.hidden=true});
+ window.addEventListener("appinstalled",()=>{btn.hidden=true;ev=null});
+ const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);
+ if(ios&&!standalone()&&!sessionStorage.getItem("iosTipOff")){tip.hidden=false;tip.addEventListener("click",()=>{tip.hidden=true;try{sessionStorage.setItem("iosTipOff","1")}catch(_){}})}
+})();
+</script>
+</body></html>
